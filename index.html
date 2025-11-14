@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Верю / Не верю — Конструктор игр</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- ШРИФТ -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ФЕЙЕРВЕРКИ -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Nunito', sans-serif;
+        background: #fff7fb;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* ----------- РАЗМЫТЫЕ КРУГИ НА ФОНЕ ----------- */
+    .bg-circle {
+        position: absolute;
+        filter: blur(80px);
+        opacity: 0.4;
+        z-index: 0;
+        border-radius: 50%;
+    }
+    .c1 { width: 420px; height: 420px; background:#ff9ecb; top: -80px; left: -80px;}
+    .c2 { width: 380px; height: 380px; background:#ffd9a0; top: 180px; right: -120px;}
+    .c3 { width: 360px; height: 360px; background:#b8ffd6; bottom: -150px; left: 200px;}
+
+    /* ----------- ОСНОВНОЙ КОНТЕЙНЕР ----------- */
+    .container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: white;
+        padding: 35px;
+        border-radius: 28px;
+        position: relative;
+        z-index: 5;
+        box-shadow: 0 10px 45px rgba(0,0,0,0.08);
+    }
+
+    .hidden { display: none; }
+
+    h1 {
+        text-align: center;
+        font-size: 36px;
+        margin-bottom: 30px;
+        color: #ff6fa6;
+        font-weight: 800;
+    }
+
+    h2 {
+        font-size: 26px;
+        font-weight: 700;
+        color:#ff6fa6;
+        margin-bottom: 20px;
+        text-align:center;
+    }
+
+    /* ----------- ТЕКСТОВЫЕ ПОЛЯ ----------- */
+   input[type=text] {
+    width: calc(100% - 20px);
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid #ddd;
+    font-size: 15px;
+    margin-bottom: 14px;
+
+    display: block;
+    box-sizing: border-box;
+    background: white;
+}
+
+
+    /* ----------- КНОПКИ ----------- */
+    .btn {
+        padding: 12px 22px;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        font-size: 16px;
+        color: white;
+        margin: 6px;
+        transition: 0.25s;
+        font-weight: 600;
+    }
+    .btn:hover { transform: translateY(-2px); opacity: .9; }
+
+    .btn-pink  { background:#ff82a9; }
+    .btn-blue  { background:#7bbaff; }
+    .btn-orange{ background:#f7a552; }
+    .btn-grey  { background:#999; }
+
+    /* ----------- СПИСОК ИГР ----------- */
+    .game-item {
+        padding: 15px;
+        background: #fff;
+        border-radius: 18px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .game-item h3{
+        margin:0 0 10px 0;
+        color:#444;
+    }
+
+    /* ----------- ЭЛЕМЕНТ УТВЕРЖДЕНИЯ ----------- */
+   .statement-item {
+    margin-bottom: 28px;
+    padding: 22px 20px;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(8px);
+
+    box-shadow:
+        0 6px 18px rgba(0,0,0,0.06),
+        0 2px 4px rgba(0,0,0,0.04);
+
+    border: 1px solid rgba(255, 182, 206, 0.25);
+}
+
+    .statement-item input[type=text] {
+        margin-bottom:10px;
+    }
+
+    .remove-btn {
+        background:#ff5273;
+        border:none;
+        color:white;
+        font-size:22px;
+        width:38px;
+        height:38px;
+        border-radius:50%;
+        cursor:pointer;
+        float:right;
+    }
+
+    /* ----------- СТИЛИ ИГРЫ ----------- */
+    .question-card {
+        background:white;
+        padding:20px;
+        border-radius:20px;
+        margin-bottom:20px;
+        box-shadow:0 4px 18px rgba(0,0,0,0.08);
+    }
+
+    .question-text {
+        font-size:20px;
+        font-weight:600;
+        margin-bottom:12px;
+    }
+
+    .answer-btn {
+        padding:10px 18px;
+        border:none;
+        border-radius:10px;
+        margin-right:10px;
+        cursor:pointer;
+        transition:.2s;
+        font-size:15px;
+        font-weight:600;
+    }
+
+    .true-btn {
+        background:#b8ffd6;
+        color:#207a44;
+    }
+    .false-btn {
+        background:#ffd9a0;
+        color:#b85b00;
+    }
+
+    .correct { background:#d7ffe4 !important; border-left:6px solid #2cb85c; }
+    .incorrect { background:#ffe2e2 !important; border-left:6px solid #ff4d4d; }
+
+    /* ----------- РЕЗУЛЬТАТЫ ----------- */
+    .result-block {
+        text-align:center;
+        padding:25px;
+        font-size:26px;
+        font-weight:700;
+        color:#444;
+    }
+
+    .emoji {
+        font-size:60px;
+        margin-bottom:15px;
+    }
+
+    /* ----------- КНОПКА ПОДПИСКИ ----------- */
+    #subscribeBtn {
+        display:block;
+        margin:35px auto;
+        padding:14px 28px;
+        border-radius:20px;
+        background:#ff8abf;
+        color:white;
+        border:none;
+        font-size:18px;
+        cursor:pointer;
+        box-shadow:0 6px 25px rgba(255,120,170,0.35);
+        transition:.25s;
+    }
+    #subscribeBtn:hover {
+        transform:translateY(-3px);
+        opacity:.9;
+    }
+
+</style>
+</head>
+<body>
+
+<!-- ФОН -->
+<div class="bg-circle c1"></div>
+<div class="bg-circle c2"></div>
+<div class="bg-circle c3"></div>
+
+<!-- ===================== ГЛАВНОЕ МЕНЮ ===================== -->
+<div class="container" id="mainMenu">
+    <h1>Верю / Не верю — Конструктор игр</h1>
+
+    <h2>Создать новую игру</h2>
+
+    <input id="newGameName" type="text" placeholder="Название игры">
+
+    <div id="newStatements"></div>
+
+    <button class="btn btn-pink" onclick="addNewStatement()">Добавить утверждение</button>
+    <button class="btn btn-blue" onclick="saveNewGame()">Сохранить игру</button>
+
+    <h2>Мои игры</h2>
+    <div id="gamesList"></div>
+</div>
+
+<!-- ===================== ИГРА ===================== -->
+<div class="container hidden" id="playScreen">
+    <h1 id="playTitle"></h1>
+    <div id="playArea"></div>
+
+    <button class="btn btn-blue" onclick="finishGame()">Завершить</button>
+    <button class="btn btn-grey" onclick="backToMenu()">В меню</button>
+</div>
+
+<!-- ===================== РЕДАКТОР ===================== -->
+<div class="container hidden" id="editScreen">
+    <h1>Редактировать игру</h1>
+
+    <input id="editName" type="text">
+
+    <div id="editStatements"></div>
+
+    <button class="btn btn-pink" onclick="addEditStatement()">Добавить утверждение</button>
+    <button class="btn btn-blue" onclick="saveEditedGame()">Сохранить изменения</button>
+    <button class="btn btn-grey" onclick="backToMenu()">В меню</button>
+</div>
+
+<!-- ===================== РЕЗУЛЬТАТЫ ===================== -->
+<div class="container hidden" id="resultScreen">
+    <div class="result-block">
+        <div class="emoji" id="resultEmoji">🙂</div>
+        <div id="resultText">Результат</div>
+    </div>
+    <button class="btn btn-orange" onclick="restartGame()">Пройти заново</button>
+    <button class="btn btn-grey" onclick="backToMenu()">В меню</button>
+</div>
+
+<!-- ===================== Подписка ===================== -->
+<button id="subscribeBtn" onclick="window.open('https://t.me/lera_easy_math','_blank')">
+    💗 Подписаться на мой канал @lera_easy_math
+</button>
+<script>
+function $(id){ return document.getElementById(id); }
+function show(...e){ e.forEach(x=>x.classList.remove("hidden")); }
+function hide(...e){ e.forEach(x=>x.classList.add("hidden")); }
+
+let currentGame = null;
+let editing = null;
+let answers = {};
+
+/* ========================= СОЗДАНИЕ НОВОЙ ИГРЫ ========================= */
+
+function addNewStatement(){
+    const id = "n" + Date.now();
+    const div = document.createElement("div");
+    div.className = "statement-item";
+
+    div.innerHTML = `
+        <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        <input type="text" placeholder="Утверждение">
+        <label><input name="${id}" type="radio" value="true" checked> Верно</label>
+        <label><input name="${id}" type="radio" value="false"> Неверно</label>
+    `;
+    $("newStatements").appendChild(div);
+}
+
+function saveNewGame(){
+    const name = $("newGameName").value.trim();
+    if(!name){ alert("Введите название игры!"); return; }
+
+    const items = [...document.querySelectorAll("#newStatements .statement-item")]
+        .map(div => {
+            const txt = div.querySelector("input[type=text]").value.trim();
+            if(!txt) return null;
+            const correct = div.querySelector("input[value='true']").checked;
+            return { text: txt, correct };
+        })
+        .filter(x => x);
+
+    if(items.length === 0){
+        alert("Добавьте хотя бы одно утверждение!");
+        return;
+    }
+
+    // сохраняем
+    currentGame = { name, statements: items };
+    localStorage.setItem("veru-" + name, JSON.stringify(currentGame));
+
+    // очистка формы
+    $("newGameName").value = "";
+    $("newStatements").innerHTML = "";
+
+    loadGames();
+}
+
+/* ========================= СПИСОК ИГР ========================= */
+
+function loadGames(){
+    $("gamesList").innerHTML = "";
+
+    Object.keys(localStorage).forEach(k => {
+        if(!k.startsWith("veru-")) return;
+
+        const game = JSON.parse(localStorage.getItem(k));
+
+        const div = document.createElement("div");
+        div.className = "game-item";
+
+        div.innerHTML = `
+            <h3>${game.name}</h3>
+            <button class="btn btn-orange" onclick="play('${game.name}')">Играть</button>
+            <button class="btn btn-blue" onclick="edit('${game.name}')">Редактировать</button>
+            <button class="btn btn-grey" onclick="delGame('${game.name}')">Удалить</button>
+        `;
+
+        $("gamesList").appendChild(div);
+    });
+}
+loadGames();
+
+function delGame(name){
+    if(confirm("Удалить игру?")){
+        localStorage.removeItem("veru-" + name);
+        loadGames();
+    }
+}
+
+/* ========================= РЕДАКТИРОВАНИЕ ========================= */
+
+function loadGame(name){
+    currentGame = JSON.parse(localStorage.getItem("veru-" + name));
+}
+
+function edit(name){
+    loadGame(name);
+    editing = name;
+
+    hide($("mainMenu"), $("playScreen"), $("resultScreen"));
+    show($("editScreen"));
+
+    $("editName").value = currentGame.name;
+    $("editStatements").innerHTML = "";
+
+    currentGame.statements.forEach(st => addEditStatement(st.text, st.correct));
+}
+
+function addEditStatement(text="", correct=true){
+    const id = "e" + Date.now();
+    const div = document.createElement("div");
+    div.className = "statement-item";
+
+    div.innerHTML = `
+        <button class="remove-btn" onclick="this.parentElement.remove()">×</button>
+        <input type="text" value="${text}">
+        <label><input name="${id}" type="radio" value="true" ${correct?"checked":""}> Верно</label>
+        <label><input name="${id}" type="radio" value="false" ${!correct?"checked":""}> Неверно</label>
+    `;
+    $("editStatements").appendChild(div);
+}
+
+function saveEditedGame(){
+    const name = $("editName").value.trim();
+    if(!name){ alert("Введите название игры!"); return; }
+
+    const items = [...document.querySelectorAll("#editStatements .statement-item")]
+        .map(div=>{
+            const txt = div.querySelector("input[type=text]").value.trim();
+            if(!txt) return null;
+            const correct = div.querySelector("input[value='true']").checked;
+            return { text: txt, correct };
+        })
+        .filter(x=>x);
+
+    // удаление старой игры
+    localStorage.removeItem("veru-" + editing);
+
+    // сохранение новой
+    currentGame = { name, statements: items };
+    localStorage.setItem("veru-" + name, JSON.stringify(currentGame));
+
+    backToMenu();
+}
+/* ========================= ИГРА ========================= */
+
+function play(name){
+    loadGame(name);
+    answers = {};
+
+    hide($("mainMenu"), $("editScreen"), $("resultScreen"));
+    show($("playScreen"));
+
+    $("playTitle").innerText = currentGame.name;
+    $("playArea").innerHTML = "";
+
+    currentGame.statements.forEach((st, i) => {
+        const div = document.createElement("div");
+        div.className = "question-card";
+        div.id = "q" + i;
+
+        div.innerHTML = `
+            <div class="question-text">${i + 1}. ${st.text}</div>
+            <button class="answer-btn true-btn" onclick="answer(${i}, true)">Верю</button>
+            <button class="answer-btn false-btn" onclick="answer(${i}, false)">Не верю</button>
+            <div id="corr${i}" class="correct-answer" style="display:none;margin-top:8px;"></div>
+        `;
+
+        $("playArea").appendChild(div);
+    });
+}
+
+
+/* ========================= ОТВЕТЫ ========================= */
+
+function answer(i, val){
+    if(answers[i] !== undefined) return; // уже отвечено
+
+    answers[i] = val;
+
+    const correct = currentGame.statements[i].correct === val;
+
+    const card = $("q" + i);
+    const corr = $("corr" + i);
+
+    // disable buttons
+    const buttons = card.querySelectorAll("button");
+    buttons.forEach(btn => btn.disabled = true);
+
+    if(correct){
+        card.classList.add("correct");
+    } else {
+        card.classList.add("incorrect");
+        corr.style.display = "block";
+        corr.innerHTML = `Правильный ответ: <b>${currentGame.statements[i].correct ? "Верю" : "Не верю"}</b>`;
+    }
+}
+
+
+/* ========================= ФЕЙЕРВЕРК ========================= */
+
+function firework(){
+    const duration = 2000;
+    const end = Date.now() + duration;
+
+    (function frame(){
+        confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+        });
+
+        confetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+        });
+
+        if(Date.now() < end){
+            requestAnimationFrame(frame);
+        }
+    })();
+}
+
+
+/* ========================= РЕЗУЛЬТАТ ========================= */
+
+function finishGame(){
+    hide($("playScreen"));
+    show($("resultScreen"));
+
+    const total = currentGame.statements.length;
+    const correct = Object.keys(answers).filter(
+        i => answers[i] === currentGame.statements[i].correct
+    ).length;
+
+    const p = Math.round(correct / total * 100);
+
+    let emo, txt;
+
+    if(p >= 80){
+        emo = "🎉";
+        txt = "Идеально!";
+        firework();
+    }
+    else if(p >= 50){
+        emo = "✨";
+        txt = "Очень хорошо!";
+        firework();
+    }
+    else if(p >= 30){
+        emo = "🙂";
+        txt = "Неплохо";
+    }
+    else{
+        emo = "😢";
+        txt = "В следующий раз получится!";
+    }
+
+    $("resultEmoji").innerText = emo;
+    $("resultText").innerText = txt + "\n" + correct + " из " + total;
+}
+
+
+/* ========================= ПОВТОР ИГРЫ ========================= */
+
+function restartGame(){
+    play(currentGame.name);
+}
+
+
+/* ========================= ВОЗВРАТ В МЕНЮ ========================= */
+
+function backToMenu(){
+    hide($("playScreen"), $("editScreen"), $("resultScreen"));
+    show($("mainMenu"));
+    loadGames();
+}
+
+</script>
+</body>
+</html>
